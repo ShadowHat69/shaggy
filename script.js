@@ -5,7 +5,7 @@ function handleClientLoad() {
 
 function initClient() {
     gapi.auth2.init({
-        client_id: 'YOUR_CLIENT_ID.apps.googleusercontent.com', // Replace with your client ID
+        client_id: '913547426535-069h7s0rve3ug1g46n1dn3477agasfbb.apps.googleusercontent.com', // Replace with your actual Client ID
         scope: "https://www.googleapis.com/auth/calendar.readonly"
     }).then(() => {
         const authInstance = gapi.auth2.getAuthInstance();
