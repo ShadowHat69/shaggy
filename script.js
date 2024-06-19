@@ -1,24 +1,19 @@
-// Google Calendar API setup
+// Google API setup
 function handleClientLoad() {
     gapi.load('client:auth2', initClient);
 }
 
 function initClient() {
     gapi.auth2.init({
-        client_id: '913547426535-069h7s0rve3ug1g46n1dn3477agasfbb.apps.googleusercontent.com'
+        client_id: 'YOUR_CLIENT_ID.apps.googleusercontent.com', // Replace with your client ID
+        scope: "https://www.googleapis.com/auth/calendar.readonly"
     }).then(() => {
-        updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-        document.getElementById('sign-in-button').onclick = handleAuthClick;
-        document.getElementById('sign-out-button').onclick = handleSignoutClick;
+        const authInstance = gapi.auth2.getAuthInstance();
+        updateSigninStatus(authInstance.isSignedIn.get());
+        document.getElementById('sign-in-button').onclick = () => authInstance.signIn();
+        document.getElementById('sign-out-button').onclick = () => authInstance.signOut();
+        authInstance.isSignedIn.listen(updateSigninStatus);
     });
-}
-
-function handleAuthClick() {
-    gapi.auth2.getAuthInstance().signIn();
-}
-
-function handleSignoutClick() {
-    gapi.auth2.getAuthInstance().signOut();
 }
 
 function updateSigninStatus(isSignedIn) {
@@ -33,10 +28,7 @@ function updateSigninStatus(isSignedIn) {
 }
 
 function listUpcomingEvents() {
-    gapi.client.init({
-        apiKey: 'AIzaSyCWN_bevAT42a9GjwM5QcTLaTzV3FmWjLs',
-        discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"]
-    }).then(() => {
+    gapi.client.load('calendar', 'v3', () => {
         gapi.client.calendar.events.list({
             'calendarId': 'primary',
             'timeMin': (new Date()).toISOString(),
@@ -64,7 +56,7 @@ function listUpcomingEvents() {
     });
 }
 
-// Load the Google Calendar API script
+// Load the Google API client
 handleClientLoad();
 
 // Private calendar implementation
