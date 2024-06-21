@@ -95,6 +95,7 @@ function filterFile() {
         if (!found) {
             console.log('No matches found');
             document.getElementById("maintitle").innerHTML = "No Matches" //sets the h2 to the classroom
+            document.getElementById("subtitle").innerHTML = ""  //sets the h2 to the classroom
 
         }
  
