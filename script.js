@@ -41,7 +41,11 @@ function displaySheet(sheet) {
 }
 
 function filterFile() {
-    const filterText = document.getElementById('filter-input').value;
+    const filterText = document.getElementById('filter-input').value.trim(); // Trim leading/trailing whitespace
+
+    // Check if filterText consists only of numeric characters
+    const isNumeric = /^\d+$/.test(filterText);
+
     if (filterText && worksheet) {
         const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
@@ -51,10 +55,38 @@ function filterFile() {
             const row = jsonSheet[rowIndex];
             for (let colIndex = 0; colIndex < row.length; colIndex++) {
                 const cellValue = row[colIndex];
-                if (cellValue && cellValue.toString().includes(filterText)) {
-                    console.log('Row:', row.join(', '));
-                    found = true;
-                    break;
+
+                // Convert cellValue to string and trim any leading/trailing whitespace
+                const stringValue = (cellValue !== undefined && cellValue !== null) ? String(cellValue).trim() : '';
+
+                // Use different comparison based on the type of filterText
+                if (isNumeric) {
+                    // Treat both values as integers if filterText is numeric
+                    const intValue = parseInt(filterText, 10);
+                    if (parseInt(stringValue, 10) === intValue) {
+                        //console.log('Row:', row.join(', '));
+                        rowstring = (row + ""); // Converts the row into a string by appending nothing to it.
+                        answer = rowstring.split(',') //splits the row by each comma and puts it into answer array
+                        console.log(answer[5]) //logs the 6th element of the array. The classroom
+                        document.getElementById("maintitle").innerHTML = answer[5]  //sets the h2 to the classroom
+                        document.getElementById("subtitle").innerHTML = answer[8]  //sets the h2 to the classroom
+                        console.log(answer[8])
+                        found = true;
+                        break;
+                    }
+                } else {
+                    // Treat both values as strings for case-insensitive search
+                    if (stringValue.toLowerCase().includes(filterText.toLowerCase())) {
+                        //console.log('Row:', row.join(', '));
+                        rowstring = (row + ""); // Converts the row into a string by appending nothing to it.
+                        answer = rowstring.split(',') //splits the row by each comma and puts it into answer array
+                        console.log(answer[5]) //logs the 6th element of the array. The classroom
+                        document.getElementById("maintitle").innerHTML = answer[5]  //sets the h2 to the classroom
+                        document.getElementById("subtitle").innerHTML = answer[8]  //sets the h2 to the classroom
+                        console.log(answer[8])
+                        found = true;
+                        break;
+                    }
                 }
             }
             if (found) break;
@@ -62,6 +94,13 @@ function filterFile() {
 
         if (!found) {
             console.log('No matches found');
+            document.getElementById("maintitle").innerHTML = "No Matches" //sets the h2 to the classroom
+
         }
+ 
     }
+    setTimeout(filterFile, 2000);
 }
+
+filterFile();
+
