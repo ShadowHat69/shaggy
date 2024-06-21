@@ -3,31 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dual Calendar</title>
+    <title>Excel File Upload and Filter</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <div class="calendar-container google-calendar">
-            <h2>Google Calendar</h2>
-            <div class="google-controls">
-                <button id="sign-in-button">Sign in with Google</button>
-                <button id="sign-out-button" style="display:none;">Sign out</button>
-            </div>
-            <div id="google-calendar-view"></div>
+        <h2>Upload and Display Excel File</h2>
+        <input type="file" id="file-input" accept=".xlsx, .xls">
+        <div class="filter-container">
+            <input type="text" id="filter-input" placeholder="Enter filter text">
+            <button id="filter-button" onclick="filterFile()">Filter</button>
         </div>
-        <div class="middle-space"></div>
-        <div class="calendar-container private-calendar">
-            <h2>Private Calendar</h2>
-            <div class="calendar-controls">
-                <button id="prev-month">Prev</button>
-                <span id="current-month"></span>
-                <button id="next-month">Next</button>
-            </div>
-            <div id="private-calendar-view"></div>
-        </div>
+        <div id="output" class="scrollable-box"></div>
     </div>
-    <script src="https://apis.google.com/js/api.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
