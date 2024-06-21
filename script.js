@@ -1,119 +1,53 @@
-// Google API setup
-function handleClientLoad() {
-    gapi.load('client:auth2', initClient);
-}
+let workbook, worksheet;
 
-function initClient() {
-    gapi.auth2.init({
-        client_id: '913547426535-069h7s0rve3ug1g46n1dn3477agasfbb.apps.googleusercontent.com', // Replace with your actual Client ID
-        scope: "https://www.googleapis.com/auth/calendar.readonly"
-    }).then(() => {
-        const authInstance = gapi.auth2.getAuthInstance();
-        updateSigninStatus(authInstance.isSignedIn.get());
-        document.getElementById('sign-in-button').onclick = () => authInstance.signIn();
-        document.getElementById('sign-out-button').onclick = () => authInstance.signOut();
-        authInstance.isSignedIn.listen(updateSigninStatus);
-    });
-}
+document.getElementById('file-input').addEventListener('change', handleFile, false);
 
-function updateSigninStatus(isSignedIn) {
-    if (isSignedIn) {
-        document.getElementById('sign-in-button').style.display = 'none';
-        document.getElementById('sign-out-button').style.display = 'block';
-        listUpcomingEvents();
-    } else {
-        document.getElementById('sign-in-button').style.display = 'block';
-        document.getElementById('sign-out-button').style.display = 'none';
+
+function handleFile(event) {
+    const file = event.target.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            workbook = XLSX.read(data, { type: 'array' });
+
+            // Assuming we want to display the first sheet
+            const firstSheetName = workbook.SheetNames[0];
+            worksheet = workbook.Sheets[firstSheetName];
+            displaySheet(worksheet);
+        };
+        reader.readAsArrayBuffer(file);
     }
 }
 
-function listUpcomingEvents() {
-    gapi.client.load('calendar', 'v3', () => {
-        gapi.client.calendar.events.list({
-            'calendarId': 'primary',
-            'timeMin': (new Date()).toISOString(),
-            'showDeleted': false,
-            'singleEvents': true,
-            'maxResults': 10,
-            'orderBy': 'startTime'
-        }).then(response => {
-            const events = response.result.items;
-            const calendarView = document.getElementById('google-calendar-view');
-            calendarView.innerHTML = '';
+function displaySheet(sheet) {
+    const htmlString = XLSX.utils.sheet_to_html(sheet);
+    document.getElementById('output').innerHTML = htmlString;
+}
 
-            if (events.length > 0) {
-                events.map(event => {
-                    const eventElement = document.createElement('div');
-                    eventElement.classList.add('event');
-                    const start = event.start.dateTime || event.start.date;
-                    eventElement.innerText = `${start} - ${event.summary}`;
-                    calendarView.appendChild(eventElement);
-                });
-            } else {
-                calendarView.innerText = 'No upcoming events found.';
+function filterFile() {
+    const filterText = document.getElementById('filter-input').value;
+    if (filterText && worksheet) {
+        const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        let found = false;
+
+        for (let rowIndex = 0; rowIndex < jsonSheet.length; rowIndex++) {
+            const row = jsonSheet[rowIndex];
+            for (let colIndex = 0; colIndex < row.length; colIndex++) {
+                const cellValue = row[colIndex];
+                if (cellValue && cellValue.toString().includes(filterText)) {
+                    console.log('Row:', row.join(', '));
+                    found = true;
+                    break;
+                }
             }
-        });
-    });
-}
-
-// Load the Google API client
-handleClientLoad();
-
-// Private calendar implementation
-const privateCalendarView = document.getElementById('private-calendar-view');
-const currentMonthSpan = document.getElementById('current-month');
-const today = new Date();
-let currentYear = today.getFullYear();
-let currentMonth = today.getMonth();
-
-document.getElementById('prev-month').addEventListener('click', () => changeMonth(-1));
-document.getElementById('next-month').addEventListener('click', () => changeMonth(1));
-
-function changeMonth(delta) {
-    currentMonth += delta;
-    if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-    } else if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-    }
-    updateCalendar();
-}
-
-function updateCalendar() {
-    privateCalendarView.innerHTML = ''; // Clear any existing content
-
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    currentMonthSpan.innerText = `${monthNames[currentMonth]} ${currentYear}`;
-
-    const calendarGrid = document.createElement('div');
-    calendarGrid.classList.add('calendar-grid');
-
-    // Fill in the days of the month
-    for (let i = 0; i < firstDay; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.classList.add('calendar-day');
-        calendarGrid.appendChild(emptyCell);
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dayCell = document.createElement('div');
-        dayCell.classList.add('calendar-day');
-        dayCell.innerText = day;
-
-        if (day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
-            dayCell.classList.add('today');
+            if (found) break;
         }
 
-        calendarGrid.appendChild(dayCell);
+        if (!found) {
+            console.log('No matches found');
+        }
     }
-
-    // Append the grid to the private calendar view
-    privateCalendarView.appendChild(calendarGrid);
 }
-
-// Initial call to display the current month
-updateCalendar();
